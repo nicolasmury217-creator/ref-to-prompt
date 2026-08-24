@@ -1,5 +1,6 @@
 import type { ScrapedPage } from './scrape';
 import { fetchWithTimeout, MODEL_CALL_TIMEOUT_MS } from './httpTimeout';
+import { buildRepairMessage, type RepairRequest } from './repairPrompt';
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 const MODEL = 'claude-sonnet-4-6';
@@ -11,6 +12,8 @@ interface CallAnalyzeModelParams {
   description: string;
   scraped?: Pick<ScrapedPage, 'html' | 'css' | 'title'>;
   screenshotBase64?: string;
+  /** Présent en seconde tentative : remplace l'analyse par une correction ciblée. */
+  repair?: RepairRequest;
 }
 
 export async function callAnalyzeModel(params: CallAnalyzeModelParams): Promise<string> {
@@ -52,6 +55,10 @@ export async function callAnalyzeModel(params: CallAnalyzeModelParams): Promise<
 }
 
 function buildContentBlocks(params: CallAnalyzeModelParams) {
+  if (params.repair) {
+    return [{ type: 'text', text: buildRepairMessage(params.repair) }];
+  }
+
   if (params.screenshotBase64) {
     return [
       {

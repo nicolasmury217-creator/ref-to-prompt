@@ -77,50 +77,56 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
+  const filterContext = {
+    fonts: scraped?.fonts ?? [],
+    domain: scraped?.domain,
+  };
+
+  const baseCall = {
+    provider: resolvedProvider,
+    apiKey: resolvedApiKey,
+    openRouterModel: resolvedOpenRouterModel,
+    systemPrompt: SYSTEM_PROMPT,
+    description,
+    scraped,
+    screenshotBase64,
+  };
+
   let rawText: string;
   try {
-    rawText = await callModel({
-      provider: resolvedProvider,
-      apiKey: resolvedApiKey,
-      openRouterModel: resolvedOpenRouterModel,
-      systemPrompt: SYSTEM_PROMPT,
-      description,
-      scraped,
-      screenshotBase64,
-    });
+    rawText = await callModel(baseCall);
   } catch (err) {
     res.status(502).json({ error: `Appel au modèle échoué: ${(err as Error).message}` });
     return;
   }
 
-  const cleaned = stripJsonFences(rawText);
-  let result: AnalyzeResult;
-  try {
-    result = JSON.parse(cleaned) as AnalyzeResult;
-  } catch {
-    // Weaker models occasionally leave a stray unescaped quote or trailing
-    // comma inside an otherwise-valid JSON object. jsonrepair fixes exactly
-    // this class of near-miss before we give up and surface an error.
-    try {
-      result = JSON.parse(jsonrepair(cleaned)) as AnalyzeResult;
-    } catch {
-      if (process.env.DEBUG_FILTER) {
-        console.error('[analyze] non-JSON even after repair. raw text length:', rawText.length, '\n---\n', rawText, '\n---');
-      }
-      res.status(502).json({ error: 'Réponse du modèle non-JSON' });
-      return;
-    }
+  const parsed = parseModelJson(rawText);
+  if (!parsed.ok) {
+    res.status(502).json({ error: 'Réponse du modèle non-JSON' });
+    return;
   }
 
-  const failure = filterLiterals(result, {
-    fonts: scraped?.fonts ?? [],
-    domain: scraped?.domain,
+  const failure = filterLiterals(parsed.result, filterContext);
+  if (!failure) {
+    res.status(200).json(parsed.result);
+    return;
+  }
+
+  if (process.env.DEBUG_FILTER) {
+    console.error('[literalFilter] rejected. raw result:', JSON.stringify(parsed.result, null, 2));
+  }
+
+  // Une seule réparation, jamais deux : chaque tentative coûte jusqu'à plusieurs
+  // minutes avec un modèle gratuit. On ne re-scrape pas non plus — le rejet vient
+  // de la rédaction du modèle, pas de la page, qui est déjà en mémoire.
+  const repaired = await attemptRepair({
+    baseCall,
+    rejected: parsed.result,
+    reasons: failure.reasons,
+    filterContext,
   });
 
-  if (failure) {
-    if (process.env.DEBUG_FILTER) {
-      console.error('[literalFilter] rejected. raw result:', JSON.stringify(result, null, 2));
-    }
+  if (!repaired) {
     res.status(422).json({
       error: 'Sortie rejetée: littéral résiduel détecté',
       reasons: failure.reasons,
@@ -128,7 +134,104 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  res.status(200).json(result);
+  // `corrige` est attaché APRÈS le filtrage, jamais avant : les motifs citent le
+  // littéral interdit lui-même (« marque source détectée: "linear" »), et
+  // filterLiterals sérialise l'objet entier avant de le scanner. L'ajouter en amont
+  // ferait rejeter une sortie pourtant corrigée, à cause de sa propre explication.
+  res.status(200).json({ ...repaired, corrige: { motifs: failure.reasons } });
+}
+
+interface RepairAttempt {
+  baseCall: Parameters<typeof callModel>[0];
+  rejected: AnalyzeResult;
+  reasons: string[];
+  filterContext: { fonts: string[]; domain?: string };
+}
+
+/**
+ * Redemande au modèle de corriger uniquement les passages fautifs. Renvoie la
+ * sortie réparée, ou null si la réparation a échoué — pour quelque raison que ce
+ * soit. L'appelant affiche alors le rejet d'origine : c'est l'information utile
+ * pour l'utilisateur, plus qu'une erreur technique de seconde main.
+ */
+async function attemptRepair({
+  baseCall,
+  rejected,
+  reasons,
+  filterContext,
+}: RepairAttempt): Promise<AnalyzeResult | null> {
+  let rawText: string;
+  try {
+    rawText = await callModel({
+      ...baseCall,
+      repair: { rejectedJson: JSON.stringify(rejected), reasons },
+    });
+  } catch (err) {
+    if (process.env.DEBUG_FILTER) {
+      console.error('[repair] appel modèle échoué:', (err as Error).message);
+    }
+    return null;
+  }
+
+  const parsed = parseModelJson(rawText);
+  if (!parsed.ok) {
+    if (process.env.DEBUG_FILTER) {
+      console.error('[repair] réponse non-JSON, longueur:', rawText.length, '\n---\n', rawText, '\n---');
+    }
+    return null;
+  }
+
+  const stillFailing = filterLiterals(parsed.result, filterContext);
+  if (stillFailing) {
+    if (process.env.DEBUG_FILTER) {
+      console.error('[repair] toujours rejeté:', stillFailing.reasons.join(' | '));
+    }
+    return null;
+  }
+
+  return parsed.result;
+}
+
+type ParseOutcome = { ok: true; result: AnalyzeResult } | { ok: false };
+
+/**
+ * Vérifie la FORME, pas seulement la validité JSON.
+ *
+ * jsonrepair est volontairement permissif : sur de la prose comme « désolé, je ne
+ * peux pas », il produit un tableau JSON parfaitement valide. Sans ce garde-fou,
+ * cette bouillie franchissait le filtre — qui n'y trouve aucun littéral, forcément —
+ * et repartait en 200, faisant planter l'affichage au premier `.map()`.
+ */
+function looksLikeAnalyzeResult(value: unknown): value is AnalyzeResult {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const candidate = value as Record<string, unknown>;
+  return (
+    Array.isArray(candidate.grammaire) &&
+    Array.isArray(candidate.preferences) &&
+    Array.isArray(candidate.tensions) &&
+    typeof candidate.prompt === 'string'
+  );
+}
+
+function parseModelJson(rawText: string): ParseOutcome {
+  const cleaned = stripJsonFences(rawText);
+
+  // Weaker models occasionally leave a stray unescaped quote or trailing comma
+  // inside an otherwise-valid JSON object. jsonrepair fixes exactly this class of
+  // near-miss before we give up and surface an error.
+  for (const tentative of [() => JSON.parse(cleaned), () => JSON.parse(jsonrepair(cleaned))]) {
+    try {
+      const value = tentative();
+      if (looksLikeAnalyzeResult(value)) return { ok: true, result: value };
+    } catch {
+      // essai suivant
+    }
+  }
+
+  if (process.env.DEBUG_FILTER) {
+    console.error('[analyze] sortie inexploitable. longueur:', rawText.length, '\n---\n', rawText, '\n---');
+  }
+  return { ok: false };
 }
 
 function stripJsonFences(text: string): string {

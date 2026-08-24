@@ -20,6 +20,18 @@ export interface AnalyzeResult {
   prompt: string;
 }
 
+/**
+ * Trace d'une relance : ajoutée par le serveur, jamais produite par le modèle, et
+ * seulement après le passage du filtre — les motifs citent le littéral interdit.
+ */
+export interface Correction {
+  motifs: string[];
+}
+
+export interface AnalyzeSuccessResponse extends AnalyzeResult {
+  corrige?: Correction;
+}
+
 export type Provider = 'anthropic' | 'openrouter';
 
 export interface AnalyzeRequestBody {

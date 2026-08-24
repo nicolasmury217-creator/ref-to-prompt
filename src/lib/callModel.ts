@@ -2,6 +2,7 @@ import type { ScrapedPage } from './scrape';
 import type { Provider } from '../types';
 import { callAnalyzeModel as callAnthropic } from './anthropic';
 import { callOpenRouterModel } from './openrouter';
+import type { RepairRequest } from './repairPrompt';
 
 interface CallModelParams {
   provider: Provider;
@@ -11,6 +12,8 @@ interface CallModelParams {
   description: string;
   scraped?: Pick<ScrapedPage, 'html' | 'css' | 'title'>;
   screenshotBase64?: string;
+  /** Présent en seconde tentative : remplace l'analyse par une correction ciblée. */
+  repair?: RepairRequest;
 }
 
 /**
@@ -30,6 +33,7 @@ export async function callModel(params: CallModelParams): Promise<string> {
       description: params.description,
       scraped: params.scraped,
       screenshotBase64: params.screenshotBase64,
+      repair: params.repair,
     });
   }
 
@@ -39,5 +43,6 @@ export async function callModel(params: CallModelParams): Promise<string> {
     description: params.description,
     scraped: params.scraped,
     screenshotBase64: params.screenshotBase64,
+    repair: params.repair,
   });
 }

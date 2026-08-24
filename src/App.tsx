@@ -5,7 +5,8 @@ import { GrammaireBlock } from './components/GrammaireBlock';
 import { PreferencesBlock } from './components/PreferencesBlock';
 import { TensionsBlock } from './components/TensionsBlock';
 import { PromptBlock } from './components/PromptBlock';
-import type { AnalyzeResult, Provider } from './types';
+import { CorrectionNotice } from './components/CorrectionNotice';
+import type { AnalyzeSuccessResponse, Provider } from './types';
 import { DEFAULT_OPENROUTER_MODEL } from './constants';
 
 type Status = 'idle' | 'loading' | 'needsScreenshot' | 'success' | 'error';
@@ -17,7 +18,7 @@ export default function App() {
   const [apiKey, setApiKey] = useState('');
   const [openRouterModel, setOpenRouterModel] = useState(DEFAULT_OPENROUTER_MODEL);
   const [status, setStatus] = useState<Status>('idle');
-  const [result, setResult] = useState<AnalyzeResult | null>(null);
+  const [result, setResult] = useState<AnalyzeSuccessResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reasons, setReasons] = useState<string[] | null>(null);
 
@@ -51,7 +52,7 @@ export default function App() {
         setStatus('error');
         return;
       }
-      setResult(data as AnalyzeResult);
+      setResult(data as AnalyzeSuccessResponse);
       setStatus('success');
     } catch (err) {
       setError((err as Error).message);
@@ -107,6 +108,7 @@ export default function App() {
 
         {status === 'success' && result && (
           <div className="space-y-8">
+            {result.corrige && <CorrectionNotice correction={result.corrige} />}
             <GrammaireBlock items={result.grammaire} />
             <PreferencesBlock items={result.preferences} />
             <TensionsBlock items={result.tensions} />

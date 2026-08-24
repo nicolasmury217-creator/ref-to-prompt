@@ -1,5 +1,6 @@
 import type { ScrapedPage } from './scrape';
 import { fetchWithTimeout, MODEL_CALL_TIMEOUT_MS } from './httpTimeout';
+import { buildRepairMessage, type RepairRequest } from './repairPrompt';
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MAX_TOKENS = 8192;
@@ -11,6 +12,8 @@ interface CallOpenRouterParams {
   description: string;
   scraped?: Pick<ScrapedPage, 'html' | 'css' | 'title'>;
   screenshotBase64?: string;
+  /** Présent en seconde tentative : remplace l'analyse par une correction ciblée. */
+  repair?: RepairRequest;
 }
 
 export async function callOpenRouterModel(params: CallOpenRouterParams): Promise<string> {
@@ -54,6 +57,10 @@ export async function callOpenRouterModel(params: CallOpenRouterParams): Promise
 }
 
 function buildUserContent(params: CallOpenRouterParams) {
+  if (params.repair) {
+    return [{ type: 'text', text: buildRepairMessage(params.repair) }];
+  }
+
   if (params.screenshotBase64) {
     return [
       {

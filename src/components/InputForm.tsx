@@ -142,6 +142,7 @@ export function InputForm({
         {loading && (
           <p className="text-xs text-neutral-500">
             Jusqu'à 2-3 min avec un modèle gratuit, généralement quelques secondes avec Claude.
+            Si le filtre rejette la sortie, une seconde tentative part automatiquement.
           </p>
         )}
       </div>
