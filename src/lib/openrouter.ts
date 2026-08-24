@@ -47,11 +47,30 @@ export async function callOpenRouterModel(params: CallOpenRouterParams): Promise
   }
 
   const data = (await res.json()) as {
-    choices: Array<{ message: { content: string } }>;
+    choices?: Array<{ message?: { content?: string; reasoning?: string }; finish_reason?: string }>;
+    error?: { message?: string; code?: number };
   };
-  const text = data.choices?.[0]?.message?.content;
+
+  // OpenRouter renvoie parfois un HTTP 200 dont le corps porte une erreur amont
+  // (capacité, limitation de débit sur les modèles gratuits). Sans ce contrôle, le
+  // cas ressortait comme un opaque « sans contenu », impossible à diagnostiquer.
+  if (data.error) {
+    throw new Error(
+      `OpenRouter a renvoyé une erreur dans une réponse 200: ${data.error.message ?? JSON.stringify(data.error)}`
+    );
+  }
+
+  const choice = data.choices?.[0];
+  const text = choice?.message?.content;
   if (!text) {
-    throw new Error('Réponse OpenRouter sans contenu');
+    // Un modèle à raisonnement peut épuiser son budget de complétion avant d'émettre
+    // la moindre réponse : on le distingue, les deux cas n'appellent pas le même
+    // remède.
+    const raisonnementSeul = (choice?.message?.reasoning ?? '').length > 0;
+    throw new Error(
+      `Réponse OpenRouter sans contenu (finish_reason: ${choice?.finish_reason ?? 'inconnu'}, ` +
+        `${data.choices?.length ?? 0} choix, ${raisonnementSeul ? 'raisonnement présent mais réponse vide' : 'aucun raisonnement'})`
+    );
   }
   return text;
 }
