@@ -13,10 +13,16 @@ prompt système d'abstraction (`src/lib/systemPrompt.ts`) et le filtre anti-litt
 (`src/lib/literalFilter.ts`) sont intégrés dans `/api/analyze` et testés bout-en-bout.
 
 **Modèle de coût : BYOK (bring your own key).** Chaque utilisateur saisit sa propre
-clé API (Anthropic ou OpenRouter) dans l'interface. Elle part directement au
-fournisseur à chaque requête, n'est jamais stockée ni journalisée côté serveur, et
-disparaît au rechargement de la page. L'opérateur qui héberge l'outil ne paie rien
-pour les visiteurs.
+clé API dans l'interface — OpenRouter par défaut, Anthropic disponible dans le menu.
+Elle part directement au fournisseur à chaque requête, n'est jamais stockée ni
+journalisée côté serveur, et disparaît au rechargement de la page. L'opérateur qui
+héberge l'outil ne paie rien pour les visiteurs, et c'est le code qui le garantit :
+hors développement, `/api/analyze` ignore toute clé présente dans l'environnement
+(voir « `.env` » plus bas).
+
+Le champ modèle est pré-rempli avec un modèle gratuit fonctionnel, pour qu'un
+visiteur n'ait qu'à coller sa clé. Les slugs gratuits d'OpenRouter changent — celui
+par défaut vit dans `src/constants.ts`, avec la commande pour lister ceux du moment.
 
 ## Setup
 
@@ -25,8 +31,8 @@ npm install
 npm run dev:full
 ```
 
-Ouvre l'app, choisis un fournisseur (Anthropic ou OpenRouter) et colle ta clé
-directement dans le formulaire — pas de fichier `.env` requis pour un usage normal.
+Ouvre l'app et colle ta clé directement dans le formulaire — pas de fichier `.env`
+requis pour un usage normal. OpenRouter est présélectionné avec un modèle gratuit.
 
 - `npm run dev` : Vite seul, sans `/api` — contrôle visuel rapide de l'interface
 - `npm run dev:full` : pipeline complet (frontend + `/api/analyze`), sans nécessiter
@@ -37,9 +43,12 @@ directement dans le formulaire — pas de fichier `.env` requis pour un usage no
 
 `.env.example` documente `ANTHROPIC_API_KEY` / `OPENROUTER_API_KEY` +
 `OPENROUTER_MODEL` comme repli optionnel côté serveur, utile seulement pour tester
-en local sans re-saisir une clé dans l'UI à chaque redémarrage. Ce repli ne s'active
-que si le champ clé du formulaire est vide ; en production, ne définis pas ces
-variables si tu veux garder le modèle BYOK strict.
+en local sans re-saisir une clé à chaque redémarrage. Ce repli ne s'active que si le
+champ clé du formulaire est vide **et** que `NODE_ENV !== 'production'`.
+
+Le BYOK strict n'est donc plus une consigne de déploiement qu'on peut oublier, mais
+une propriété du code : sur un déploiement, une variable d'environnement laissée là
+par mégarde ne peut pas faire payer l'opérateur pour les requêtes des visiteurs.
 
 ## Structure
 

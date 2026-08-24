@@ -1,4 +1,5 @@
 import type { Provider } from '../types';
+import { DEFAULT_OPENROUTER_MODEL } from '../constants';
 
 interface InputFormProps {
   url: string;
@@ -72,8 +73,8 @@ export function InputForm({
               onChange={(e) => onProviderChange(e.target.value as Provider)}
               className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-neutral-100"
             >
-              <option value="anthropic">Anthropic (Claude)</option>
               <option value="openrouter">OpenRouter</option>
+              <option value="anthropic">Anthropic (Claude)</option>
             </select>
           </div>
           <div>
@@ -104,7 +105,7 @@ export function InputForm({
               required
               value={openRouterModel}
               onChange={(e) => onOpenRouterModelChange(e.target.value)}
-              placeholder="ex: deepseek/deepseek-chat-v3.1:free"
+              placeholder={DEFAULT_OPENROUTER_MODEL}
               className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-neutral-100 placeholder:text-neutral-600"
             />
           </div>
@@ -113,6 +114,20 @@ export function InputForm({
         <p className="text-xs text-neutral-500">
           Ta clé part directement au fournisseur choisi à chaque requête. Elle n'est jamais
           stockée ni journalisée côté serveur, et disparaît si tu recharges la page.
+          {provider === 'openrouter' && (
+            <>
+              {' '}
+              <a
+                href="https://openrouter.ai/keys"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="underline hover:text-neutral-300"
+              >
+                Créer une clé OpenRouter
+              </a>{' '}
+              — le modèle proposé ci-dessus est gratuit.
+            </>
+          )}
         </p>
       </div>
 

@@ -6,15 +6,16 @@ import { PreferencesBlock } from './components/PreferencesBlock';
 import { TensionsBlock } from './components/TensionsBlock';
 import { PromptBlock } from './components/PromptBlock';
 import type { AnalyzeResult, Provider } from './types';
+import { DEFAULT_OPENROUTER_MODEL } from './constants';
 
 type Status = 'idle' | 'loading' | 'needsScreenshot' | 'success' | 'error';
 
 export default function App() {
   const [url, setUrl] = useState('');
   const [description, setDescription] = useState('');
-  const [provider, setProvider] = useState<Provider>('anthropic');
+  const [provider, setProvider] = useState<Provider>('openrouter');
   const [apiKey, setApiKey] = useState('');
-  const [openRouterModel, setOpenRouterModel] = useState('');
+  const [openRouterModel, setOpenRouterModel] = useState(DEFAULT_OPENROUTER_MODEL);
   const [status, setStatus] = useState<Status>('idle');
   const [result, setResult] = useState<AnalyzeResult | null>(null);
   const [error, setError] = useState<string | null>(null);

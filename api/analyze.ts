@@ -29,11 +29,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const resolvedProvider: Provider = provider === 'openrouter' ? 'openrouter' : 'anthropic';
 
   // BYOK: the key travels with the request and is never persisted. The env
-  // fallback only ever fires locally, when the operator has their own .env
-  // set for dev testing — it is never populated in a real deployment.
+  // fallback exists only to spare the operator retyping a key while developing
+  // locally, so it is gated on the environment rather than on the operator
+  // remembering not to set these variables in production. Without that gate a
+  // stray OPENROUTER_API_KEY on the host would silently bill the operator for
+  // every visitor's request — the exact opposite of the BYOK model.
+  const allowEnvFallback = process.env.NODE_ENV !== 'production';
+
   const resolvedApiKey =
     (typeof apiKey === 'string' && apiKey.trim()) ||
-    (resolvedProvider === 'openrouter' ? process.env.OPENROUTER_API_KEY : process.env.ANTHROPIC_API_KEY);
+    (allowEnvFallback
+      ? resolvedProvider === 'openrouter'
+        ? process.env.OPENROUTER_API_KEY
+        : process.env.ANTHROPIC_API_KEY
+      : undefined);
 
   if (!resolvedApiKey) {
     res.status(400).json({ error: 'Clé API manquante' });
