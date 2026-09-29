@@ -40,7 +40,7 @@
 
   /* ---------- Éléments ---------- */
   const root      = document.documentElement;
-  const zone      = document.getElementById('scrub');
+  const zone      = document.querySelector('.scrub');
   const canvas    = document.getElementById('canvas');
   const loader    = document.getElementById('loader');
   const loaderVal = document.getElementById('loader-value');
@@ -334,6 +334,8 @@
   function reveal() {
     loader.classList.add('is-done');
     root.classList.remove('is-loading');
+    root.classList.add('is-ready');                  // les textes du chapitre 1 peuvent apparaître
+    document.dispatchEvent(new CustomEvent('orione:ready'));
     if (lenis) lenis.start();
   }
 
