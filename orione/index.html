@@ -6,10 +6,25 @@
   <title>Orione — Chantier naval, yachts sur mesure</title>
   <meta name="description" content="Orione, chantier naval de yachts de luxe sur mesure, de 18 à 60 mètres. Une dizaine de livraisons par an, atelier en Méditerranée.">
   <meta name="theme-color" content="#0B1220">
+  <meta name="color-scheme" content="dark">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <!-- Open Graph / réseaux sociaux (og:image : passer en URL absolue une fois le domaine connu) -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:site_name" content="Orione">
+  <meta property="og:title" content="Orione — Chantier naval, yachts sur mesure">
+  <meta property="og:description" content="De 18 à 60 mètres, une dizaine de yachts par an. Voyez naître un Orione, de la coque à la mise à l'eau.">
+  <meta property="og:image" content="og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Un yacht bleu nuit au large, à l'aube, dans la brume.">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <!-- Polices auto-hébergées (SIL OFL) : pas de requête vers un tiers -->
+  <link rel="preload" href="fonts/cormorant-garamond-latin-300-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/style.css">
 
   <noscript><style>.loader{display:none}.scrub__canvas{display:none}.stills{display:block}
@@ -144,7 +159,7 @@
         <h2 class="eyebrow" id="chiffres-titre">Chiffres</h2>
         <dl class="figures__list">
           <div class="figure">
-            <dt>d'expérience</dt>
+            <dt>Expérience</dt>
             <dd><span class="figure__num" data-count="35">35</span><span class="figure__unit">ans</span></dd>
           </div>
           <div class="figure">
@@ -167,7 +182,7 @@
 
       <article class="model">
         <a class="model__media" href="#contact" data-length="24" aria-label="Orione 24 : demander un rendez-vous">
-          <img src="images/orione-24.webp" width="2400" height="1340" loading="lazy" decoding="async"
+          <img src="images/orione-24.webp" srcset="images/orione-24-1200.webp 1200w, images/orione-24.webp 2400w" sizes="100vw" width="2400" height="1340" loading="lazy" decoding="async"
                alt="Orione 24 : un yacht de 24 mètres à coque bleu nuit et pont de teck, au mouillage dans une baie calme au petit matin.">
         </a>
         <div class="grid model__meta">
@@ -182,7 +197,7 @@
 
       <article class="model">
         <a class="model__media" href="#contact" data-length="38" aria-label="Orione 38 : demander un rendez-vous">
-          <img src="images/orione-38.webp" width="2400" height="1340" loading="lazy" decoding="async"
+          <img src="images/orione-38.webp" srcset="images/orione-38-1200.webp 1200w, images/orione-38.webp 2400w" sizes="100vw" width="2400" height="1340" loading="lazy" decoding="async"
                alt="Orione 38 : un yacht de 38 mètres sur deux ponts, de profil, en croisière sur une mer sombre à l'heure dorée.">
         </a>
         <div class="grid model__meta">
@@ -197,7 +212,7 @@
 
       <article class="model">
         <a class="model__media" href="#contact" data-length="55" aria-label="Orione 55 : demander un rendez-vous">
-          <img src="images/orione-55.webp" width="2400" height="1340" loading="lazy" decoding="async"
+          <img src="images/orione-55.webp" srcset="images/orione-55-1200.webp 1200w, images/orione-55.webp 2400w" sizes="100vw" width="2400" height="1340" loading="lazy" decoding="async"
                alt="Orione 55 : un yacht de 55 mètres sur trois ponts, vu de trois quarts arrière au crépuscule, lumières de pont laiton allumées.">
         </a>
         <div class="grid model__meta">

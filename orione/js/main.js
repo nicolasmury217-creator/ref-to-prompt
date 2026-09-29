@@ -69,6 +69,11 @@
 
     closeMenu(false);
     scrollToTarget(id === 'top' ? 'top' : el);
+
+    // Le focus suit la navigation (utile au clavier et aux lecteurs d'écran)
+    const focusTarget = el || $('#contenu');
+    if (!focusTarget.hasAttribute('tabindex')) focusTarget.setAttribute('tabindex', '-1');
+    focusTarget.focus({ preventScroll: true });
   });
 
   /* ------------------------------------------------------------------------
@@ -82,7 +87,8 @@
     const y = window.scrollY;
     const dy = y - lastY;
     if (Math.abs(dy) < 6) return;
-    if (menuOpen || y < 80 || dy < 0) header.classList.remove('is-hidden');
+    // Jamais masqué tant que le focus clavier est dedans
+    if (menuOpen || y < 80 || dy < 0 || header.contains(document.activeElement)) header.classList.remove('is-hidden');
     else header.classList.add('is-hidden');
     lastY = y;
   }, { passive: true });
@@ -143,7 +149,7 @@
       manifesto.append(span, i < words.length - 1 ? ' ' : '');
       return span;
     });
-    gsap.fromTo(spans, { opacity: 0.16 }, {
+    gsap.fromTo(spans, { opacity: 0.5 }, {   // 0,5 : plancher qui garde le contraste AA (4,5:1)
       opacity: 1,
       ease: 'none',
       stagger: 0.12,
