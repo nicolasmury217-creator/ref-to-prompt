@@ -1,0 +1,165 @@
+/* ==========================================================================
+   ORIONE — feuille de style (étape 2 : moteur de scroll-scrubbing)
+   ========================================================================== */
+
+:root {
+  --navy: #0B1220;
+  --ivory: #F3EFE8;
+  --sand: #C9B79C;
+  --brass: #B08D57;
+
+  --serif: "Cormorant Garamond", "Instrument Serif", Georgia, serif;
+  --sans: "Inter", "Manrope", system-ui, sans-serif;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --gutter: clamp(1.25rem, 4vw, 4rem);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  background: var(--navy);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Lenis : gestion native du scroll */
+html.lenis, html.lenis body { height: auto; }
+.lenis:not(.lenis-autoToggle).lenis-stopped { overflow: clip; }
+
+body {
+  margin: 0;
+  background: var(--navy);
+  color: var(--ivory);
+  font-family: var(--sans);
+  font-weight: 300;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+html.is-loading { overflow: hidden; }
+
+/* -------------------------------------------------------------------------
+   Loader
+   ------------------------------------------------------------------------- */
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: end start;
+  padding: var(--gutter);
+  background: var(--navy);
+  transition: opacity 1s var(--ease), visibility 0s linear 1s;
+}
+.loader.is-done { opacity: 0; visibility: hidden; }
+
+.loader__value {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(3rem, 9vw, 9rem);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  color: var(--ivory);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.loader__unit { color: var(--brass); font-size: 0.4em; margin-left: 0.15em; }
+
+/* -------------------------------------------------------------------------
+   Zone de scroll : 800vh, canvas sticky 100vh
+   ------------------------------------------------------------------------- */
+.scrub { position: relative; height: 800vh; }
+
+.scrub__stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--navy);
+}
+
+.scrub__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Repli : images fixes en fondu */
+.stills { display: none; position: absolute; inset: 0; }
+.still {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease);
+}
+.still.is-active { opacity: 1; }
+.still img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.is-fallback .scrub__canvas { display: none; }
+.is-fallback .stills { display: block; }
+
+/* -------------------------------------------------------------------------
+   Jauge verticale
+   ------------------------------------------------------------------------- */
+.gauge {
+  position: absolute;
+  top: 50%;
+  right: var(--gutter);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1rem;
+  transform: translateY(-50%);
+  color: var(--ivory);
+  pointer-events: none;
+}
+.gauge__label {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  font-variant-numeric: tabular-nums;
+}
+.gauge__track {
+  position: relative;
+  width: 1px;
+  height: clamp(6rem, 22vh, 12rem);
+  background: rgba(243, 239, 232, 0.28);
+}
+.gauge__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--brass);
+  transform-origin: top;
+  transform: scaleY(0);
+}
+
+/* -------------------------------------------------------------------------
+   Fin de séquence & debug
+   ------------------------------------------------------------------------- */
+.tail { height: 60vh; background: var(--navy); }
+
+.debug {
+  position: fixed;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 200;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  background: rgba(11, 18, 32, 0.85);
+  color: var(--sand);
+  font: 11px/1.5 ui-monospace, monospace;
+  pointer-events: none;
+}
+
+@media (max-width: 767px) {
+  .gauge { gap: 0.75rem; }
+  .gauge__track { height: 5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader, .still { transition-duration: 0.01s; }
+}

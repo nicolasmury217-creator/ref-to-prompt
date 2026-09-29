@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Orione — Chantier naval, yachts sur mesure</title>
+  <meta name="description" content="Orione, chantier naval de yachts de luxe sur mesure, de 18 à 60 mètres. Atelier en Méditerranée.">
+  <meta name="theme-color" content="#0B1220">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+
+  <noscript><style>.loader{display:none}.scrub__canvas{display:none}.stills{display:block}</style></noscript>
+</head>
+<body>
+
+  <!-- Loader : pourcentage en serif fin sur fond bleu nuit -->
+  <div class="loader" id="loader" role="status" aria-live="polite">
+    <p class="loader__value"><span id="loader-value">0</span><span class="loader__unit">%</span></p>
+  </div>
+
+  <main>
+    <!--
+      Zone de scroll : 800vh. Le scroll est le seul contrôleur du temps.
+      Le canvas est sticky (100vh) ; les images fixes servent de repli
+      (prefers-reduced-motion, connexion lente, échec de chargement).
+    -->
+    <section class="scrub" id="scrub" aria-label="La construction d'un yacht Orione, du chantier à la mise à l'eau">
+      <div class="scrub__stage">
+        <canvas class="scrub__canvas" id="canvas" role="img"
+                aria-label="Séquence photographique : un yacht bleu nuit à teck et laiton, de la coque nue à la mise à l'eau, puis au large."></canvas>
+
+        <div class="stills" id="stills">
+          <picture class="still is-active">
+            <source media="(max-width: 767px)" srcset="stills/still_1_m.webp">
+            <img src="stills/still_1.webp" alt="À l'aube, un yacht bleu nuit au large, dans la brume." decoding="async">
+          </picture>
+          <picture class="still">
+            <source media="(max-width: 767px)" srcset="stills/still_2_m.webp">
+            <img src="stills/still_2.webp" alt="Une coque nue en cale sèche, les membrures dessinées de fins traits de laiton." loading="lazy" decoding="async">
+          </picture>
+          <picture class="still">
+            <source media="(max-width: 767px)" srcset="stills/still_3_m.webp">
+            <img src="stills/still_3.webp" alt="Étincelles de soudure sur la coque, mains d'artisans sur les plans." loading="lazy" decoding="async">
+          </picture>
+          <picture class="still">
+            <source media="(max-width: 767px)" srcset="stills/still_4_m.webp">
+            <img src="stills/still_4.webp" alt="Un artisan pose les lames de teck dans l'atelier d'intérieur, cuir et laiton alentour." loading="lazy" decoding="async">
+          </picture>
+          <picture class="still">
+            <source media="(max-width: 767px)" srcset="stills/still_5_m.webp">
+            <img src="stills/still_5.webp" alt="La mise à l'eau au crépuscule, la coque glisse dans la mer." loading="lazy" decoding="async">
+          </picture>
+          <picture class="still">
+            <source media="(max-width: 767px)" srcset="stills/still_6_m.webp">
+            <img src="stills/still_6.webp" alt="Vue aérienne du yacht en route, un sillage blanc derrière lui." loading="lazy" decoding="async">
+          </picture>
+          <picture class="still">
+            <source media="(max-width: 767px)" srcset="stills/still_7_m.webp">
+            <img src="stills/still_7.webp" alt="Au coucher du soleil, le yacht n'est plus qu'une silhouette à l'horizon." loading="lazy" decoding="async">
+          </picture>
+        </div>
+
+        <!-- Jauge verticale : chapitre en cours -->
+        <div class="gauge" id="gauge" aria-hidden="true">
+          <p class="gauge__label"><span id="gauge-now">01</span> / 07</p>
+          <div class="gauge__track"><span class="gauge__fill" id="gauge-fill"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Espace de fin de séquence (les sections suivantes arrivent à l'étape 3) -->
+    <div class="tail" aria-hidden="true"></div>
+  </main>
+
+  <pre class="debug" id="debug" hidden></pre>
+
+  <script src="vendor/gsap.min.js"></script>
+  <script src="vendor/ScrollTrigger.min.js"></script>
+  <script src="vendor/lenis.min.js"></script>
+  <script src="js/scrub.js"></script>
+</body>
+</html>
